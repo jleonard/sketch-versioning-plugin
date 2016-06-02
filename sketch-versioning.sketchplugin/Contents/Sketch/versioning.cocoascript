@@ -1,0 +1,122 @@
+var VERSION = '0.0.0';
+
+var onRun = function(context){
+
+  var doc = context.document;
+
+  var options = ['Patch', 'Minor', 'Major'];
+
+  var choice = createSelect('Bump the Version',options, 1);
+
+  var message = doc.askForUserInput_initialValue("Optional: Add a version message", "");
+
+  log(choice);
+
+  if(doc.currentPage().artboards().count() > 0){
+
+    var artboard = doc.currentPage().currentArtboard();
+    var group = artboard.addLayerOfType('group');
+    group.setName('--version');
+    
+    var container = createContainer(artboard,group);
+
+    getExistingVersion(doc);
+  }
+
+}
+
+function createSelect(msg, items, selectedItemIndex){
+  selectedItemIndex = selectedItemIndex || 0
+
+  var accessory = NSComboBox.alloc().initWithFrame(NSMakeRect(0,0,200,25))
+  accessory.addItemsWithObjectValues(items)
+  accessory.selectItemAtIndex(selectedItemIndex)
+
+  var alert = NSAlert.alloc().init()
+  alert.setMessageText(msg)
+  alert.addButtonWithTitle('OK')
+  alert.addButtonWithTitle('Cancel')
+  alert.setAccessoryView(accessory)
+
+  var responseCode = alert.runModal()
+  var sel = accessory.indexOfSelectedItem()
+
+  return [responseCode, sel]
+}
+
+function createContainer(artboard,group){
+  var BOX_HEIGHT = 32;
+  var aboard = {};
+  aboard.y = artboard.frame().y();
+  aboard.x = artboard.frame().x();
+  aboard.height = artboard.frame().height();
+  aboard.width = artboard.frame().width();
+
+  artboard.frame().setHeight( aboard.height + BOX_HEIGHT);
+
+  var rect = group.addLayerOfType('rectangle');
+    rect.frame().setY(aboard.height);
+    rect.frame().setX(0);
+    rect.frame().setWidth(aboard.width);
+    rect.frame().setHeight(BOX_HEIGHT);
+  var fill = rect.style().fills().addNewStylePart();
+    fill.color = MSColor.colorWithSVGString('#393B36');
+
+  // add author and date info
+  var author = NSUserName();
+  var date = new Date();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var day = date.getDate() < 9 ? '0' + date.getDate() : date.getDate();
+  var dateString = months[date.getMonth()] + ' ' + day + ', ' + date.getFullYear();
+
+  var text = group.addLayerOfType('text');
+  text.setStringValue(author + ' ' + dateString);
+  text.setFontSize(12);
+  text.setTextColor(MSColor.colorWithSVGString('#d6d6d6'));
+  text.frame().setY(aboard.height + 10);
+  text.frame().setX(20);
+  text.setName('--metadata');
+  text.adjustFrameToFit();
+}
+
+function getExistingVersion(doc){
+  var all_layers = doc.currentPage().layers();
+  for(var i=0; i < all_layers.count(); i++){
+    var layer = all_layers.objectAtIndex(i);
+    iterate(layer);
+  }
+}
+
+function iterate(layer){
+  var layers = layer.layers();
+  for(var i = 0; i < layers.count(); i++){
+    var l = layers.objectAtIndex(i);
+    if(l.name() == "--version"){
+      iterateVersionGroup(l);
+    }else{
+      iterate(l);
+    }
+  }
+}
+
+function iterateVersionGroup(layer){
+  var layers = layer.layers();
+  for(var i = 0; i < layers.count(); i++){
+    var l = layers.objectAtIndex(i);
+    if(l.name() == "--artboard-version"){
+      var str = l.stringValue();
+      var arr = str.split('.');
+      VERSION = convertVersionArray(arr);
+    }
+  }
+}
+
+function convertVersionArray(arr){
+  var len = arr.length;
+  for(var ii = 0; ii < len; ii++){
+    var cur = arr[ii];
+    arr[ii] = parseInt(cur,10);
+  }
+  return arr;
+}
+

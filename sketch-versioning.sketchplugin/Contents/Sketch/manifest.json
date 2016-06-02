@@ -1,0 +1,24 @@
+{
+  "author": "John Leonard <thejohnleonard@gmail.com>",
+  "email": "thejohnleonard@gmail.com",
+  "identifier": "com.leonard.sketch.versioning",
+  "menu": {
+    "isRoot": true,
+    "title": "Versioning",
+    "items": [
+      "do-versioning"
+    ]
+  },
+  "commands": [
+    {
+      "script": "versioning.cocoascript",
+      "handler": "onRun",
+      "shortcut": "",
+      "name": "Versioning",
+      "identifier":"do-versioning"
+    }
+  ],
+  "version": "1.0",
+  "description": "Semantic versioning and git like commenting for Sketch files.",
+  "name": "Sketch Versioning"
+}
